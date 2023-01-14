@@ -10,7 +10,7 @@ from ecapture import ecapture as ec
 import wolframalpha
 import json
 import requests
-
+import openai
 
 print('Loading your AI personal assistant - G One')
 
@@ -63,14 +63,80 @@ if __name__=='__main__':
         if statement==0:
             continue
 
-        if "good bye" in statement or "ok bye" in statement or "stop" in statement:
+        elif "good bye" in statement or "ok bye" in statement or "stop" in statement:
             speak('your personal assistant G-one is shutting down,Good bye')
             print('your personal assistant G-one is shutting down,Good bye')
             break
 
+        elif "initiate" in query or "chat" in query or "vanilla" in query or "gpt" in query:
+            def GPT():
+                speak("Connecting to Veronica")
+
+                #Enter API KEY or Leave blank if you don't want to use this function
+                API_KEY = ""
+                openai.api_key = API_KEY
+                if API_KEY == "":
+                    print("Please Enter the API Key!")
+                    speak("Please Enter the API Key!")
+                while API_KEY != "":
+                    engine1 = pyttsx3.init()
+                    voices = engine1.getProperty('voices')
+                    engine1.setProperty('voice', voices[1].id)
+                    r = sr.Recognizer()
+                    mic = sr.Microphone(device_index=1)
+                    
+                
+
+                    conversation = ""
+                    
+                    user_name = str(input("Enter your name: "))
+                    bot_name = "Vanilla"
+                    print("Hey,"+user_name)
+                    
+                    while True:
+                        with mic as source:
+                            print("\nlistening...")
+                            r.adjust_for_ambient_noise(source, duration=0.2)
+                            audio = r.listen(source)
+                        print("no longer listening.\n")
+
+                        try:
+                            user_input = r.recognize_google(audio)
+                        except:
+                            continue
 
 
-        if 'wikipedia' in statement:
+                        prompt = user_name + ": " + user_input + "\n" + bot_name+ ": "
+                            
+                        conversation += prompt  # allows for context
+                            # fetch response from open AI api
+                        response = openai.Completion.create(engine='text-davinci-003', prompt=conversation, max_tokens=50)
+                        response_str = response["choices"][0]["text"].replace("\n", "")
+                        response_str = response_str.split(user_name + ": ", 1)[0].split(bot_name + ": ", 1)[0]
+                        
+                        conversation += response_str + "\n"
+                        print(response_str)
+                        engine1.say(response_str)
+
+                        prompt = user_name + ": " + user_input + "\n" + bot_name + ": "
+
+                        conversation += prompt  # allows for context
+                        # fetch response from open AI api
+                        response = openai.Completion.create(
+                            engine='text-davinci-003', prompt=conversation, max_tokens=50)
+                        response_str = response["choices"][0]["text"].replace(
+                            "\n", "")
+                        response_str = response_str.split(
+                            user_name + ": ", 1)[0].split(bot_name + ": ", 1)[0]
+
+                        conversation += response_str + "\n"
+                        print(response_str)
+                        engine1.say(response_str)
+                        engine1.runAndWait()
+            GPT()
+
+
+        elif 'wikipedia' in statement:
             speak('Searching Wikipedia...')
             statement =statement.replace("wikipedia", "")
             results = wikipedia.summary(statement, sentences=3)
